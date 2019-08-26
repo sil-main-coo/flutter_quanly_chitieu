@@ -4,7 +4,7 @@ class SettingTab extends StatefulWidget {
   _SettingTabState createState() => _SettingTabState();
 }
 
-class _SettingTabState extends State<SettingTab> {
+class _SettingTabState extends State<SettingTab> with AutomaticKeepAliveClientMixin{
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -40,4 +40,8 @@ class _SettingTabState extends State<SettingTab> {
       ],
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

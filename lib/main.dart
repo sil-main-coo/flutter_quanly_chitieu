@@ -4,6 +4,7 @@ import 'package:quanly_chitieu/router.dart';
 import 'package:quanly_chitieu/view/home.dart';
 import 'package:quanly_chitieu/view/login.dart';
 
+import 'blocs/bloc_detail.dart';
 import 'blocs/bloc_status.dart';
 
 void main() => runApp(MyApp());
@@ -14,6 +15,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<StatusBloc>(builder: (_)=> StatusBloc(),),
+        ChangeNotifierProvider<DetailBloc>(builder: (_)=> DetailBloc(),),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

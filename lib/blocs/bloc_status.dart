@@ -22,6 +22,10 @@ class StatusBloc extends ChangeNotifier{
   UserResponse get user => _user;
   String get userId => _userId;
 
+  refreshGetUser(){
+    _cacheUser= AsyncMemoizer();
+  }
+
   set userId(String value){
     this._userId= value;
     notifyListeners();

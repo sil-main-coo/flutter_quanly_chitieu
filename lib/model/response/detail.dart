@@ -4,7 +4,7 @@ class Detail{
   Detail(this.id, this.money, this.detail);
 
   Detail.fromJson(Map<String, dynamic> json){
-    this.id= json['id_thu'] ?? json['id_chi'];
+    this.id= json['idthu'] ?? json['idchi'];
     this.money= json['money'];
     this.detail= json['detail'];
   }

@@ -7,4 +7,6 @@ class MyUrl{
   static String getChi = host + "get/chi.php";
   static String removeChi = host + "delete/chi.php";
   static String removeThu = host + "delete/thu.php";
+  static String addThu = host + "add/thu.php";
+  static String addChi = host + "add/chi.php";
 }

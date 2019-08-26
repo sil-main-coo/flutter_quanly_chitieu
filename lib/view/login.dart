@@ -94,7 +94,7 @@ class LoginPage extends StatelessWidget {
       _bloc.loginApi(acc).then((onvalue) {
         Loader.hideLoadingDialog(context);
         if (onvalue == null) {
-          MyDialog.showMsgDialogLogin(context, "LỖI", "Sai tài khoản hoặc mật khẩu !");
+          MyDialog.showMsgDialogErr(context, "LỖI", "Sai tài khoản hoặc mật khẩu !");
         } else {
           final sttBloc= StatusBloc.of(context);
           sttBloc.userId= onvalue.id;
