@@ -7,7 +7,7 @@ import 'package:quanly_chitieu/url/url.dart';
 class DetailAPI {
   Future<List<Detail>> getThu(String idUser) async {
     try {
-      var response= await http.get(MyUrl.getThu+"?id_user="+idUser);
+      var response= await http.get(MyUrl.getThu+"?user_name="+idUser);
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -30,29 +30,10 @@ class DetailAPI {
     }
   }
 
-  Future<bool> removeThu(String idthu) async {
+  Future<bool> removeThu(Detail detail, String user_name) async {
     try {
-      var response= await http.post(MyUrl.removeThu, body: {'idthu': idthu});
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      String body= response.body;
-
-      if (body == '0' || body.contains('<!doctype html>'))
-        return false;
-
-      return true;
-
-    }catch(e) {
-      print(e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> addThu(String id_user, Detail detail) async {
-    try {
-      var response= await http.post(MyUrl.addThu,
-          body: {'money': detail.money, 'detail': detail.detail, 'id_user': id_user}
+      var response= await http.post(MyUrl.removeThu,
+          body: {'idthu': detail.id, 'money': detail.money, 'type_money': detail.type_money, 'user_name': user_name}
           );
 
       print('Response status: ${response.statusCode}');
@@ -70,9 +51,31 @@ class DetailAPI {
     }
   }
 
-  Future<List<Detail>> getChi(String idUser) async {
+  Future<bool> addThu(String user_name, Detail detail) async {
     try {
-      var response= await http.get(MyUrl.getChi+"?id_user="+idUser);
+      var response= await http.post(MyUrl.addThu,
+          body: {'money': detail.money, 'detail': detail.detail,
+            'user_name': user_name, 'type_money': detail.type_money, 'time': detail.time}
+          );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      String body= response.body;
+
+      if (body == '0' || body.contains('<!doctype html>'))
+        return false;
+
+      return true;
+
+    }catch(e) {
+      print(e.toString());
+      return false;
+    }
+  }
+
+  Future<List<Detail>> getChi(String user_name) async {
+    try {
+      var response= await http.get(MyUrl.getChi+"?user_name="+user_name);
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -95,10 +98,12 @@ class DetailAPI {
     }
   }
 
-  Future<bool> addChi(String id_user, Detail detail) async {
+  Future<bool> addChi(String user_name, Detail detail) async {
     try {
       var response= await http.post(MyUrl.addChi,
-          body: {'money': detail.money, 'detail': detail.detail, 'id_user': id_user}
+          body: {'money': detail.money, 'detail': detail.detail, 'user_name': user_name,
+            'type_money': detail.type_money, 'time': detail.time
+          }
       );
 
       print('Response status: ${response.statusCode}');
@@ -117,9 +122,11 @@ class DetailAPI {
   }
 
 
-  Future<bool> removeChi(String idchi) async {
+  Future<bool> removeChi(Detail detail, String user_name) async {
     try {
-      var response= await http.post(MyUrl.removeChi, body: {'idchi': idchi});
+      var response= await http.post(MyUrl.removeChi,
+          body: {'idchi': detail.id, 'money': detail.money, 'type_money': detail.type_money, 'user_name' : user_name}
+          );
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');

@@ -12,14 +12,14 @@ class MoneyTabBloc{
     return null;
   }
 
-  Future<bool> handlingRemoveDetail(int type, String id) async{
+  Future<bool> handlingRemoveDetail(int type, Detail detail,  String user_name) async{
     switch(type){
       case 1:
       /// call thu
-        return _detailAPI.removeThu(id);
+        return _detailAPI.removeThu(detail, user_name);
       case 2:
       /// call chi
-        return _detailAPI.removeChi(id);
+        return _detailAPI.removeChi(detail, user_name);
     }
     return null;
   }

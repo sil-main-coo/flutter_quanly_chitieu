@@ -16,39 +16,43 @@ class StatusBloc extends ChangeNotifier{
 
   UserAPI _userApi = UserAPI();
 
-  String _userId;
+  String _user_name;
   UserResponse _user;
 
   UserResponse get user => _user;
-  String get userId => _userId;
+  String get user_name => _user_name;
 
   refreshGetUser(){
     _cacheUser= AsyncMemoizer();
   }
 
   set userId(String value){
-    this._userId= value;
+    this._user_name= value;
     notifyListeners();
   }
 
   saveUserIDLocal() async {
-    LocalStorage.saveAccount(this._userId);
+    LocalStorage.saveAccount(this._user_name);
   }
 
   getUserFromLocal() async {
     _cacheID.runOnce(() async {
-      String id = await LocalStorage.getAccount();
-      if (id != null) {
-        print(id);
-        this._userId = id;
+      String user_name = await LocalStorage.getAccount();
+      if (user_name != null) {
+        print(user_name);
+        this._user_name = user_name;
         notifyListeners();
       }
     });
   }
 
+  Future<bool> clearDataUser() async {
+    return LocalStorage.clearData();
+  }
+
   Future<void> getUser() async {
     _cacheUser.runOnce(() async {
-      UserResponse data=  await  _userApi.getUser(this._userId);
+      UserResponse data=  await  _userApi.getUser(this._user_name);
       print(data.money_card.toString());
       if (data!=null) {
         this._user= data;

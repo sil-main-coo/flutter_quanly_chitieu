@@ -12,7 +12,7 @@ class DetailBloc with ChangeNotifier{
 
   DetailAPI api= DetailAPI();
   AsyncMemoizer<List<Detail>> _cacheThu= AsyncMemoizer();
-  AsyncMemoizer<bool> _cacheRemoveThu= AsyncMemoizer();
+    AsyncMemoizer<bool> _cacheRemoveThu= AsyncMemoizer();
   AsyncMemoizer<List<Detail>> _cacheChi= AsyncMemoizer();
   AsyncMemoizer<bool> _cacheRemoveChi= AsyncMemoizer();
 
@@ -22,27 +22,27 @@ class DetailBloc with ChangeNotifier{
     notifyListeners();
   }
 
-  Future<List<Detail>>getListThu(String idUser){
+  Future<List<Detail>>getListThu(String user_name){
     return _cacheThu.runOnce((){
-      return api.getThu(idUser);
+      return api.getThu(user_name);
     });
   }
 
-  Future<bool>removeThu(String id){
+  Future<bool>removeThu(Detail detail, String user_name){
     return _cacheRemoveThu.runOnce(() {
-      return api.removeThu(id);
+      return api.removeThu(detail, user_name);
     });
   }
 
-  Future<List<Detail>>getListChi(String idUser){
+  Future<List<Detail>>getListChi(String user_name){
     return _cacheChi.runOnce((){
-      return api.getChi(idUser);
+      return api.getChi(user_name);
     });
   }
 
-  Future<bool>removeChi(String id){
+  Future<bool>removeChi(Detail detail, String user_name){
     return _cacheRemoveChi.runOnce(() {
-      return api.removeChi(id);
+      return api.removeChi(detail, user_name);
     });
   }
 

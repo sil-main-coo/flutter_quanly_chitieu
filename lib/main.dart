@@ -34,8 +34,8 @@ class GetLocal extends StatelessWidget {
   Widget build(BuildContext context) {
      final _sttBloc= StatusBloc.of(context);
      _sttBloc.getUserFromLocal();
-     print(_sttBloc.userId);
-    return _sttBloc.userId == null ? LoginPage() : HomePage();
+     print(_sttBloc.user_name);
+    return _sttBloc.user_name == null ? LoginPage() : HomePage();
   }
 }
 

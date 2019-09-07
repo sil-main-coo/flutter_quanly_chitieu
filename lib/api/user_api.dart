@@ -1,7 +1,6 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:quanly_chitieu/blocs/bloc_local_storage.dart';
 import 'package:quanly_chitieu/model/request/account.dart';
 import 'package:quanly_chitieu/model/response/login.dart';
 import 'package:quanly_chitieu/model/response/user.dart';
@@ -31,9 +30,9 @@ class UserAPI {
     }
   }
 
-  Future<UserResponse> getUser(String id) async {
+  Future<UserResponse> getUser(String user_name) async {
     try {
-      var response= await http.get(MyUrl.getUser+"?id_user="+id);
+      var response= await http.get(MyUrl.getUser+"?user_name="+user_name);
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -41,7 +40,7 @@ class UserAPI {
 
       if (body == '0' || body.contains('<!doctype html>'))
         return null;
-
+      print(body);
       var json= jsonDecode(body);
       var user= json['user'];
       var data= user[0];
@@ -57,7 +56,7 @@ class UserAPI {
     try {
       var response= await http.post(MyUrl.register,
           body: {
-            'id': user.name,
+            'name': user.name,
             'year': user.year,
             'user_name': user.user_name,
             'password': user.password,

@@ -25,9 +25,9 @@ class SharedPfs{
     prefs.remove(key);
   }
 
-  static Future<void> clearData() async {
+  static Future<bool> clearData() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.clear();
+    return prefs.clear();
   }
 
 }

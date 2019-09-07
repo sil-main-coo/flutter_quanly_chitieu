@@ -8,6 +8,7 @@ import 'package:quanly_chitieu/model/response/detail.dart';
 import 'package:quanly_chitieu/model/response/user.dart';
 import 'package:quanly_chitieu/widgets/dialog.dart';
 import 'package:quanly_chitieu/widgets/loader.dart';
+import 'package:toast/toast.dart';
 class MoneyTab extends StatefulWidget {
   @override
   _MoneyTabState  createState() => _MoneyTabState ();
@@ -20,9 +21,9 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
   final _formKey = GlobalKey<FormState>();
   TextEditingController _moneyCtrl= TextEditingController();
   TextEditingController _detailCtrl= TextEditingController();
-  int _sel;
+  int _selChi, _selThu;
   int _type;
-  String _id;
+  Detail _detail;
   bool _isEdit= true;
   MoneyTabBloc _moneyTabBloc= MoneyTabBloc();
 
@@ -57,15 +58,15 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
           _full_money(sttBloc.user),
           Text("Thống kê chi tiêu"),
           _buildTabbar(),
-          _buildTabView(sttBloc.userId, detailBloc)
+          _buildTabView(sttBloc.user_name, detailBloc)
           //_detail_money(sttBloc.userId)
         ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: _isEdit? Colors.blue : Colors.red,
-        child: Icon(_isEdit? Icons.create:  Icons.close),
+        child: Icon(_isEdit? Icons.create:  Icons.delete),
         onPressed: () {
-          _isEdit? _createDetailMoney(sttBloc, detailBloc) : _removeDetail(_id);
+          _isEdit? _createDetailMoney(sttBloc, detailBloc) : _removeDetail();
         },
       ),
     );
@@ -95,11 +96,11 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
-              Text("Tài khoản"),
+              Text("Số tài khoản: "+user.card),
               Row(
                 children: <Widget>[
                   Text("Tổng cộng : "),
-                  Text("10000"),
+                  Text(_formatNumber((int.parse(user.money_card)+int.parse(user.money_face)).toString())),
                 ],
               )
             ],
@@ -107,8 +108,8 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
-              _type_money("Tài khoản thẻ", user.money_card, Colors.blue),
-              _type_money("Tiền mặt", user.money_face, Colors.amberAccent)
+              _type_money("Tài khoản thẻ", _formatNumber(user.money_card), Colors.blue),
+              _type_money("Tiền mặt", _formatNumber(user.money_face), Colors.amberAccent)
             ],
           )
         ],
@@ -175,11 +176,11 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
               if (snapshot.hasError)
                 return Text('Error: ${snapshot.error}');
               List<Detail> thu = snapshot.data;
-              return thu == null ? _emptyList() :
+              return thu.length == 0 ? _emptyList() :
               ListView.separated(
                   shrinkWrap: true,
                   itemBuilder: (BuildContext context, int index) =>
-                      _money_item(thu[thu.length -1 - index], index, 1),
+                      _money_item_thu(thu[thu.length -1 - index], index),
                   separatorBuilder: (context, index) =>
                       Divider(color: Colors.black26,),
                   itemCount: thu.length
@@ -208,7 +209,7 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
               ListView.separated(
                   shrinkWrap: true,
                   itemBuilder: (BuildContext context, int index) =>
-                      _money_item(chi[chi.length -1 - index], index, 2),
+                      _money_item_chi(chi[chi.length -1 - index], index),
                   separatorBuilder: (context, index) =>
                       Divider(color: Colors.black26,),
                   itemCount: chi.length
@@ -220,11 +221,12 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
   }
 
 
-  _money_item(Detail data, int index, int type) {
+  _money_item_thu(Detail data, int index) {
     return GestureDetector(
       child: ListTile(
-        selected: index == _sel? true : false,
-        leading: Icon(Icons.adb),
+        selected: index == _selThu? true : false,
+        leading:  data.type_money=='the'? Icon(Icons.credit_card, color: Colors.blue,)
+            : Icon(Icons.monetization_on, color: Colors.amber,),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -232,9 +234,58 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
             Text(data.detail,
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            Text("Thẻ", style: TextStyle(fontSize: 10),
+            Text(data.type_money=='the'? 'Thẻ' : 'Tiền mặt', style: TextStyle(fontSize: 10),
             ),
-            Text("11:22 22/12/2011",
+            Text(data.time,
+              style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(_formatNumber(data.money)),
+            Text(" đ")
+          ],
+        ),
+
+      ),
+      onLongPress: (){
+        setState(() {
+          _selThu= index;
+          _detail= data;
+          _isEdit= false;
+          _type= 1;
+        });
+      },
+      onTap: (){
+        setState(() {
+          if(_selThu!=null ) {
+            _selThu = null;
+            _isEdit= true;
+            _type= null;
+          }
+        });
+      },
+    );
+  }
+
+  _money_item_chi(Detail data, int index) {
+    return GestureDetector(
+      child: ListTile(
+        selected: index == _selChi? true : false,
+        leading:  data.type_money=='the'? Icon(Icons.credit_card, color: Colors.blue,)
+            : Icon(Icons.monetization_on, color: Colors.amber,),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            Text(data.detail,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            Text(data.type_money=='the'? 'Thẻ' : 'Tiền mặt', style: TextStyle(fontSize: 10),
+            ),
+            Text(data.time,
               style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic),
             ),
           ],
@@ -250,16 +301,16 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
       ),
       onLongPress: (){
         setState(() {
-          _sel= index;
-          _id= data.id;
+          _selChi= index;
+          _detail= data;
           _isEdit= false;
-          _type= type;
+          _type= 2;
         });
       },
       onTap: (){
         setState(() {
-          if(_sel!=null ) {
-            _sel = null;
+          if(_selChi!=null ) {
+            _selChi = null;
             _isEdit= true;
             _type= null;
           }
@@ -267,6 +318,7 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
       },
     );
   }
+
 
   _emptyList() {
     return Center(
@@ -280,7 +332,47 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
   bool get wantKeepAlive => true;
 
   void _createDetailMoney(StatusBloc sttBloc, DetailBloc detailBloc) {
-    showModalBottomSheet(
+    showDialog(
+        context: context,
+        builder: (context) =>
+            AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8))),
+                backgroundColor: Colors.white,
+                content: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        IconButton(icon: Icon(
+                          Icons.credit_card, size: 30, color: Colors.blue,),
+                            onPressed: () => _showBottomSheet(sttBloc, detailBloc, 'the')
+                        ),
+                        Text("Tiền thẻ"),
+                      ],
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        IconButton(icon: Icon(
+                          Icons.monetization_on, size: 30, color: Colors.blue,),
+                            onPressed: () => _showBottomSheet(sttBloc, detailBloc, 'mat')
+                        ),
+                        Text('Tiền mặt'),
+                      ],
+                    ),
+                  ],
+                )
+            )
+    );
+
+
+  }
+
+  _showBottomSheet(StatusBloc sttBloc, DetailBloc detailBloc, String type){
+    print(type);
+        showModalBottomSheet(
         context: context,
         builder: (context) {
           return new Container(
@@ -294,98 +386,110 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
                     borderRadius: new BorderRadius.only(
                         topLeft: const Radius.circular(25.0),
                         topRight: const Radius.circular(25.0))),
-                child: Stack(
-                  children: <Widget>[
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: Container(
-                          height: height / 100,
-                          width: width / 4,
-                          decoration: new BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: new BorderRadius.all(
-                                const Radius.circular(25.0),)
-                          )
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Form(
-                        key: _formKey,
-                        child: SingleChildScrollView(
+                child:
+                    SingleChildScrollView(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Form(
+                          key: _formKey,
                           child: Column(
-                            children: <Widget>[
-                              SizedBox(height: height / 20,),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                                child: TextFormField(
-                                  controller: _moneyCtrl,
-                                  validator: (value) => _moneyTabBloc.isValidNotEmpty(value),
-                                  keyboardType: TextInputType.number,
-                                  decoration: new InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.greenAccent, width: 1.0),
+                              children: <Widget>[
+                                SizedBox(height: height / 20,),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                                  child: TextFormField(
+                                    controller: _moneyCtrl,
+                                    validator: (value) => _moneyTabBloc.isValidNotEmpty(value),
+                                    keyboardType: TextInputType.number,
+                                    decoration: new InputDecoration(
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.greenAccent, width: 1.0),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.black, width: 1.0),
+                                      ),
+                                      hintText: 'Số tiền',
                                     ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.black, width: 1.0),
-                                    ),
-                                    hintText: 'Số tiền',
                                   ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                                child: TextFormField(
-                                  controller: _detailCtrl,
-                                  validator: (value) => _moneyTabBloc.isValidNotEmpty(value),
-                                  keyboardType: TextInputType.multiline,
-                                  maxLines: 2,
-                                  decoration: new InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.greenAccent, width: 1.0),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                                  child: TextFormField(
+                                    controller: _detailCtrl,
+                                    validator: (value) => _moneyTabBloc.isValidNotEmpty(value),
+                                    keyboardType: TextInputType.multiline,
+                                    maxLines: 2,
+                                    decoration: new InputDecoration(
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.greenAccent, width: 1.0),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.black, width: 1.0),
+                                      ),
+                                      hintText: 'Chi tiết',
                                     ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.black, width: 1.0),
-                                    ),
-                                    hintText: 'Chi tiết',
                                   ),
                                 ),
-                              ),
-                              BottomSheetSwitch(
-                                groupValue: groupValue,
-                                valueChanged: (value) {
-                                  groupValue = value;
-                                },
-                              ),
+                                BottomSheetSwitch(
+                                  groupValue: groupValue,
+                                  valueChanged: (value) {
+                                    groupValue = value;
+                                  },
+                                ),
 
-                              FlatButton(
-                                onPressed: () {
-                                  _addDetail(sttBloc, detailBloc);
-                                },
-                                child: Text("Thêm", style: TextStyle(color: Colors
-                                    .white),),
-                                color: Colors.blue,
-                              )
+                                FlatButton(
+                                  onPressed: () {
+                                    _addDetail(sttBloc, detailBloc, type);
+                                  },
+                                  child: Text("Thêm", style: TextStyle(color: Colors
+                                      .white),),
+                                  color: Colors.blue,
+                                )
 
-                            ],
-                          ),
+                              ],
+                            ),
                         ),
                       ),
-                    )
-                  ],
                 )),
           );
         });
   }
 
-  void _addDetail(StatusBloc sttBloc, DetailBloc detailBloc) {
+  void _addDetail(StatusBloc sttBloc, DetailBloc detailBloc, String type_money) {
     if(_formKey.currentState.validate()){
+      int money= int.parse(_moneyCtrl.text.trim());
+
+      if(groupValue==2){
+        //chi > số tiền ? -> không chi đc
+        if(type_money=='the'){
+          // so sánh thẻ
+          int money_card=  int.parse(sttBloc.user.money_card);
+          if(money>money_card) {
+            Toast.show('Số tiền trong thẻ không đủ !', context,
+                duration: Toast.LENGTH_LONG);
+            return;
+          }
+        }else{
+          // so sánh tiền mặt
+          // so sánh thẻ
+          int money_face=  int.parse(sttBloc.user.money_face);
+          if(money>money_face) {
+            Toast.show('Số tiền mặt hiện có không đủ !', context,
+                duration: Toast.LENGTH_LONG);
+            return;
+          }
+        }
+      }
+
       Loader.showLoadingDialog(context);
-      _moneyTabBloc.handlingCreateDetail(sttBloc.userId,groupValue, Detail("", _moneyCtrl.text.trim(), _detailCtrl.text.trim()))
+      DateTime now = DateTime.now();
+      print(now.toIso8601String());
+      _moneyTabBloc.handlingCreateDetail(sttBloc.user_name,groupValue,
+          Detail("", money.toString(), _detailCtrl.text.trim(), type_money, now.toIso8601String()))
       .then((value){
         Loader.hideLoadingDialog(context);
         if(value==null)
@@ -405,9 +509,31 @@ class _MoneyTabState extends State<MoneyTab> with SingleTickerProviderStateMixin
     }
   }
 
-  _removeDetail(String id) {
+  _removeDetail() {
     print("remove");
-    MyDialog.showMsgDialog(context, "Xóa", "Bạn muốn xóa chứ?", _moneyTabBloc,_type, _id);
+    MyDialog.showMsgDialog(context, "Xóa", "Bạn muốn xóa chứ?", _moneyTabBloc,_type, _detail);
+    if(_selThu!=null || _selChi!=null) {
+      _selChi= null;
+      _selThu = null;
+      _isEdit= true;
+      _type= null;
+    }
+  }
+
+  String _formatNumber(String number){
+    String res='';
+    int length= number.length;
+
+    for (int i= length-1; i>= 0; i--) {
+      if ((i != 0) && (length - i)%3==0)
+       res =','+number[i]+res;
+      else
+      res= number[i]+res;
+    }
+    if (res[0]==',')
+      res.replaceFirst(',', "");
+    print(res);
+    return res;
   }
 }
 

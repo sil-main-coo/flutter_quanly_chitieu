@@ -1,7 +1,7 @@
 class Login{
-  String id;
+  String user_name;
 
   Login.fromJson(Map<String, dynamic> json){
-    this.id= json['id'];
+    this.user_name= json['user_name'];
   }
 }

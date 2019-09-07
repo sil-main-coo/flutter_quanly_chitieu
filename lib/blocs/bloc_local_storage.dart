@@ -11,4 +11,8 @@ class LocalStorage{
     final body=  await SharedPfs.getData('user');
     return body;
   }
+
+  static Future<bool> clearData() async {
+    return await SharedPfs.clearData();
+  }
 }
